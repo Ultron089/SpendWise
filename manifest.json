@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "SpendWise",
+  "version": "1.0.0",
+  "description": "Smart Shopping Expense Analyzer",
+  "action": {
+    "default_popup": "src/popup/index.html"
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://example.com/*"],
+      "js": ["content-scripts/contentScript.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dashboard/index.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
