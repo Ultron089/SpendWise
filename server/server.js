@@ -1,7 +1,12 @@
-const app = require("./app.js");
+require("dotenv").config();
 
-const PORT = 5000;
+const app = require("./app");
+const connectDB = require("./config/db");
 
-app.listen(PORT, () => {
-  console.log(`SpendWise server running on PORT: ${PORT}`);
+const PORT = process.env.PORT || 5000;
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`SpendWise server running on PORT: ${PORT}`);
+  });
 });
