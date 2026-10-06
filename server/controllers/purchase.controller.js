@@ -1,34 +1,173 @@
-const createPurchase = (req, res) => {
-  res.status(200).json({
-    message: "Create purchase controller reached",
-  });
+const Purchase = require("../models/Purchase");
+
+const createPurchase = async (req, res) => {
+  try {
+    const {
+      platform,
+      productName,
+      amount,
+      currency,
+      purchaseDate,
+      orderId,
+      productUrl,
+      detectionMethod,
+    } = req.body;
+
+    // Validate required fields
+    if (!platform || !productName || amount === undefined || !purchaseDate) {
+      return res.status(400).json({
+        message:
+          "Platform, product name, amount and purchase date are required",
+      });
+    }
+
+    // Create purchase for the authenticated user
+    const purchase = await Purchase.create({
+      userId: req.userId,
+      platform,
+      productName,
+      amount,
+      currency,
+      purchaseDate,
+      orderId,
+      productUrl,
+      detectionMethod,
+    });
+
+    res.status(201).json({
+      message: "Purchase created successfully",
+      purchase,
+    });
+  } catch (error) {
+    console.error("Create purchase error:", error.message);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 };
 
-const getPurchases = (req, res) => {
-  res.status(200).json({
-    message: "Get purchases controller reached",
-  });
+const getPurchases = async (req, res) => {
+  try {
+    const purchases = await Purchase.find({
+      userId: req.userId,
+    }).sort({
+      purchaseDate: -1,
+    });
+
+    res.status(200).json({
+      count: purchases.length,
+      purchases,
+    });
+  } catch (error) {
+    console.error("Get purchases error:", error.message);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 };
 
-const getPurchaseById = (req, res) => {
-  res.status(200).json({
-    message: "Get purchase by ID controller reached",
-    id: req.params.id,
-  });
+const getPurchaseById = async (req, res) => {
+  try {
+    const purchase = await Purchase.findOne({
+      _id: req.params.id,
+      userId: req.userId,
+    });
+
+    if (!purchase) {
+      return res.status(404).json({
+        message: "Purchase not found",
+      });
+    }
+
+    res.status(200).json({
+      purchase,
+    });
+  } catch (error) {
+    console.error("Get purchase error:", error.message);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 };
 
-const updatePurchase = (req, res) => {
-  res.status(200).json({
-    message: "Update purchase controller reached",
-    id: req.params.id,
-  });
+const updatePurchase = async (req, res) => {
+  try {
+    const allowedUpdates = [
+      "platform",
+      "productName",
+      "amount",
+      "currency",
+      "category",
+      "purchaseDate",
+      "orderId",
+      "productUrl",
+    ];
+
+    const updates = {};
+
+    for (const field of allowedUpdates) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
+    const purchase = await Purchase.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        userId: req.userId,
+      },
+      updates,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    if (!purchase) {
+      return res.status(404).json({
+        message: "Purchase not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Purchase updated successfully",
+      purchase,
+    });
+  } catch (error) {
+    console.error("Update purchase error:", error.message);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 };
 
-const deletePurchase = (req, res) => {
-  res.status(200).json({
-    message: "Delete purchase controller reached",
-    id: req.params.id,
-  });
+const deletePurchase = async (req, res) => {
+  try {
+    const purchase = await Purchase.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.userId,
+    });
+
+    if (!purchase) {
+      return res.status(404).json({
+        message: "Purchase not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Purchase deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete purchase error:", error.message);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 };
 
 module.exports = {

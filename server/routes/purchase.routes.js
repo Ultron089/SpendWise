@@ -2,22 +2,24 @@ const express = require("express");
 
 const router = express.Router();
 
+const protect = require("../middleware/auth.middleware");
+
 const {
   createPurchase,
   getPurchases,
   getPurchaseById,
   updatePurchase,
   deletePurchase,
-} = require("../controllers/purchase.controller.js");
+} = require("../controllers/purchase.controller");
 
-router.post("/", createPurchase);
+router.post("/", protect, createPurchase);
 
-router.get("/", getPurchases);
+router.get("/", protect, getPurchases);
 
-router.get("/:id", getPurchaseById);
+router.get("/:id", protect, getPurchaseById);
 
-router.patch("/:id", updatePurchase);
+router.patch("/:id", protect, updatePurchase);
 
-router.delete("/:id", deletePurchase);
+router.delete("/:id", protect, deletePurchase);
 
 module.exports = router;
