@@ -1,0 +1,196 @@
+[
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-6407485-1074724",
+    "orderDateText": "15 September 2026",
+    "amount": 249,
+    "currency": "INR",
+    "products": [
+      {
+        "productName": "The Derma Co 2% Niacinamide Gentle Skin Cleanser for Sensitive, Dry, Normal Skin - 125 ml | Non-Irritant | 100% Soap-Free | Non-Oil Stripping | Gently Cleanses Makeup",
+        "productUrl": "/dp/B0CD1RRT75?ref=ppx_yo2ov_dt_b_fed_asin_title",
+        "unitPrice": null,
+        "category": null
+      }
+    ],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": false,
+    "exclusionReason": null
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-6481818-2521954",
+    "orderDateText": "15 September 2026",
+    "amount": 140,
+    "currency": "INR",
+    "products": [],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": true,
+    "exclusionReason": "Wallet top-up is not a purchase"
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon-now",
+    "orderId": "404-8002156-8361920",
+    "orderDateText": "31 August 2026",
+    "amount": 918,
+    "currency": "INR",
+    "products": [
+      {
+        "productName": "AXE Signature Intense Long Lasting Deodorant No Gas Body Perfume For Men 200 Ml",
+        "productUrl": "/dp/B09RW5M4XM?almBrandId=qqfsWw9RkO&ref=ppx_yo2ov_dt_b_fed_wwgs_yo_dp_A21TJRUUN4KGV_qqfsWw9RkO&fpw=alm",
+        "unitPrice": null,
+        "category": null
+      },
+      {
+        "productName": "Go24 pexpo Stainless Steel Water Bottle 1 LTR | Thermosteel Flask",
+        "productUrl": "/dp/B0CLXVWX25?almBrandId=qqfsWw9RkO&ref=ppx_yo2ov_dt_b_fed_wwgs_yo_dp_A21TJRUUN4KGV_qqfsWw9RkO&fpw=alm",
+        "unitPrice": null,
+        "category": null
+      }
+    ],
+    "category": "quick commerce",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": false,
+    "exclusionReason": null
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-5671360-3384307",
+    "orderDateText": "31 August 2026",
+    "amount": 894,
+    "currency": "INR",
+    "products": [],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": true,
+    "exclusionReason": "Wallet top-up is not a purchase"
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-1037441-2758735",
+    "orderDateText": "27 June 2026",
+    "amount": 646,
+    "currency": "INR",
+    "products": [
+      {
+        "productName": "Jockey FP03 Men's Super Combed Cotton Rib Solid Trunk with Ultrasoft Waistband_Black New_L",
+        "productUrl": "/dp/B0FWQQ46CQ?ref=ppx_yo2ov_dt_b_fed_asin_title",
+        "unitPrice": null,
+        "category": null
+      },
+      {
+        "productName": "Jockey Men's Cotton Briefs (Pack of 2) (37824_Blue_L)",
+        "productUrl": "/dp/B096WGXLXY?ref=ppx_yo2ov_dt_b_fed_asin_title",
+        "unitPrice": null,
+        "category": null
+      }
+    ],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": false,
+    "exclusionReason": null
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-9902142-9440356",
+    "orderDateText": "27 June 2026",
+    "amount": 640,
+    "currency": "INR",
+    "products": [],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": true,
+    "exclusionReason": "Wallet top-up is not a purchase"
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-3812096-3549136",
+    "orderDateText": "24 June 2026",
+    "amount": 349,
+    "currency": "INR",
+    "products": [
+      {
+        "productName": "PHILIPS TAE2146WT in-Ear Wired Headphones with USB-C Plug, 10mm Drivers for Deep Dynamic Bass and Clear Sound, in-Line Mic with Call Button, 3 Interchangeable Ear Caps, 1.2m Durable Cable (White)",
+        "productUrl": "/dp/B0DMPGY9YS?ref=ppx_yo2ov_dt_b_fed_asin_title",
+        "unitPrice": null,
+        "category": null
+      }
+    ],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": false,
+    "exclusionReason": null
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-5923357-2917133",
+    "orderDateText": "24 June 2026",
+    "amount": 323,
+    "currency": "INR",
+    "products": [],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": true,
+    "exclusionReason": "Wallet top-up is not a purchase"
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-6002054-0051542",
+    "orderDateText": "20 June 2026",
+    "amount": 400.3,
+    "currency": "INR",
+    "products": [
+      {
+        "productName": "Zero to One: Notes on Start Ups, or How to Build the Future | International Bestseller by Peter Thiel and Blake Masters",
+        "productUrl": "/dp/0753555190?ref=ppx_yo2ov_dt_b_fed_asin_title",
+        "unitPrice": null,
+        "category": null
+      }
+    ],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": false,
+    "exclusionReason": null
+  },
+  {
+    "platform": "amazon",
+    "store": "amazon",
+    "orderId": "404-3634476-5169146",
+    "orderDateText": "20 June 2026",
+    "amount": 109.35,
+    "currency": "INR",
+    "products": [
+      {
+        "productName": "Meditations by Marcus Aurelius | Ancient Wisdom on Purpose, Calm & Personal Growth | Philosophy, Stoicism & Self-Mastery | A Stoic Classic for Mental Strength & Inner Clarity | Wisdom for Modern Living | Original Premium Paperback Edition | Best Seller",
+        "productUrl": "/dp/8175994754?ref=ppx_yo2ov_dt_b_fed_asin_title",
+        "unitPrice": null,
+        "category": null
+      }
+    ],
+    "category": "Uncategorized",
+    "individualPricesAvailable": false,
+    "source": "history",
+    "excludedFromExpenditure": false,
+    "exclusionReason": null
+  }
+]

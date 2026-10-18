@@ -237,6 +237,134 @@ h3 {
   cursor: pointer;
 }
 
+.primary-button:disabled,
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.import-panel {
+  margin-top: 18px;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-form h2 {
+  margin-bottom: 2px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+}
+
+.auth-form .primary-button,
+.pending-import .primary-button {
+  margin-top: 0;
+}
+
+.account-row,
+.pending-import {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pending-import {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.pending-import strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.25rem;
+}
+
+.pending-import .primary-button {
+  width: auto;
+  min-width: 130px;
+}
+
+.text-button {
+  border: 0;
+  padding: 6px 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.text-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.verification-id-panel {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.verification-user-id {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.75rem;
+  user-select: all;
+}
+
+.action-note,
+.action-notice {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.action-notice {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.action-notice--success {
+  color: var(--success);
+}
+
+.action-notice--error {
+  color: #b91c1c;
+}
+
+.secondary-button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .status-bar {
   justify-content: center;
   gap: 8px;

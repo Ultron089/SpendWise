@@ -19,6 +19,7 @@ export default defineConfig({
         ),
       },
       output: {
+        format: "es",
         entryFileNames: (chunkInfo) => {
           if (chunkInfo.name === "background") {
             return "background/background.js";

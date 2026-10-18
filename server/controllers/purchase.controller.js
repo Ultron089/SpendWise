@@ -1,4 +1,5 @@
 const Purchase = require("../models/Purchase");
+const { buildDeduplicationKey } = require("../services/deduplicationService");
 
 const createPurchase = async (req, res) => {
   try {
@@ -21,18 +22,56 @@ const createPurchase = async (req, res) => {
       });
     }
 
-    // Create purchase for the authenticated user
-    const purchase = await Purchase.create({
-      userId: req.userId,
+    const deduplicationKey = buildDeduplicationKey(
+      req.userId,
       platform,
-      productName,
-      amount,
-      currency,
-      purchaseDate,
       orderId,
-      productUrl,
-      detectionMethod,
-    });
+      productName,
+    );
+
+    if (deduplicationKey) {
+      const existing = await Purchase.findOne({
+        userId: req.userId,
+        deduplicationKey,
+      });
+
+      if (existing) {
+        return res.status(200).json({
+          message: "Purchase already exists",
+          duplicate: true,
+          purchase: existing,
+        });
+      }
+    }
+
+    let purchase;
+    try {
+      purchase = await Purchase.create({
+        userId: req.userId,
+        platform,
+        productName,
+        amount,
+        currency,
+        purchaseDate,
+        orderId,
+        productUrl,
+        detectionMethod,
+        deduplicationKey,
+      });
+    } catch (error) {
+      if (error.code !== 11000 || !deduplicationKey) throw error;
+      purchase = await Purchase.findOne({
+        userId: req.userId,
+        deduplicationKey,
+      });
+      if (!purchase) throw error;
+
+      return res.status(200).json({
+        message: "Purchase already exists",
+        duplicate: true,
+        purchase,
+      });
+    }
 
     res.status(201).json({
       message: "Purchase created successfully",

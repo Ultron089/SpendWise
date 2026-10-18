@@ -63,9 +63,21 @@ const purchaseSchema = new mongoose.Schema(
     rawExtractedText: {
       type: String,
     },
+    deduplicationKey: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,
+  },
+);
+
+purchaseSchema.index(
+  { deduplicationKey: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { deduplicationKey: { $type: "string" } },
   },
 );
 
