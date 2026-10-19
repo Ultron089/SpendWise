@@ -15,12 +15,14 @@ const createProductLink = () => ({
   querySelectorAll: () => [],
 });
 
-const loadExtractor = (pathname, text) => {
+const loadExtractor = (pathname, text, bodyLinks = []) => {
   const productLink = createProductLink();
   const body = {
     innerText: text,
-    querySelectorAll: (selector) =>
-      selector === "a[href]" || selector.includes("/dp/") ? [productLink] : [],
+    querySelectorAll: (selector) => {
+      if (selector === "a[href]") return bodyLinks;
+      return selector.includes("/dp/") ? [productLink] : [];
+    },
   };
   const source = fs
     .readFileSync(
@@ -78,6 +80,7 @@ const createWorker = ({ fetchImpl, authenticated = true } = {}) => {
       : {}),
   };
   let onMessage;
+  const runtimeMessages = [];
   const chrome = {
     storage: {
       local: {
@@ -99,6 +102,10 @@ const createWorker = ({ fetchImpl, authenticated = true } = {}) => {
     },
     runtime: {
       onInstalled: { addListener() {} },
+      sendMessage(message, callback) {
+        runtimeMessages.push(message);
+        callback?.();
+      },
       onMessage: {
         addListener(listener) {
           onMessage = listener;
@@ -122,6 +129,7 @@ const createWorker = ({ fetchImpl, authenticated = true } = {}) => {
 
   return {
     data,
+    runtimeMessages,
     send(
       message,
       senderUrl = "https://www.amazon.in/gp/buy/thankyou/confirmation",
@@ -145,6 +153,56 @@ test("extracts a completed Amazon confirmation, not an ordinary product view", (
   assert.equal(confirmation.orderId, "123-1234567-1234567");
   assert.equal(confirmation.amount, 918);
   assert.equal(confirmation.source, "realtime");
+});
+
+test("wallet-credit labels are excluded without matching ordinary similar text", () => {
+  const walletLink = {
+    innerText: "Amazon Pay balance: credits",
+    getAttribute: () => "#",
+    querySelectorAll: () => [],
+  };
+  const ordinaryLink = {
+    innerText: "Amazon Pay balance gift card holder",
+    getAttribute: () => "#",
+    querySelectorAll: () => [],
+  };
+  const confirmationText =
+    "Your order has been placed\nORDER # 123-1234567-1234567\nORDER PLACED October 11, 2026\nTOTAL ₹918";
+
+  const walletOrder = loadExtractor(
+    "/gp/buy/thankyou/confirmation",
+    confirmationText,
+    [walletLink],
+  );
+  const ordinaryOrder = loadExtractor(
+    "/gp/buy/thankyou/confirmation",
+    confirmationText,
+    [ordinaryLink],
+  );
+
+  assert.equal(walletOrder.excludedFromExpenditure, true);
+  assert.equal(ordinaryOrder.excludedFromExpenditure, false);
+  assert.equal(ordinaryOrder.amount, 918);
+});
+
+test("realtime extraction classifies Amazon Fresh and Amazon Now order-level purchases", () => {
+  const confirmation =
+    "Your order has been placed\nORDER # 123-1234567-1234567\nORDER PLACED October 11, 2026\nTOTAL ₹918";
+  const freshOrder = loadExtractor(
+    "/gp/buy/thankyou/confirmation",
+    `${confirmation}\nAmazon Fresh`,
+  );
+  const nowOrder = loadExtractor(
+    "/gp/buy/thankyou/confirmation",
+    `${confirmation}\nAmazon Now`,
+  );
+
+  assert.equal(freshOrder.store, "amazon-fresh");
+  assert.equal(freshOrder.category, "Groceries");
+  assert.equal(freshOrder.products.length, 0);
+  assert.equal(nowOrder.store, "amazon-now");
+  assert.equal(nowOrder.category, "quick commerce");
+  assert.equal(nowOrder.products.length, 0);
 });
 
 test("submits a valid confirmation and clears it only after backend import", async () => {
@@ -174,6 +232,31 @@ test("submits a valid confirmation and clears it only after backend import", asy
     makeOrder().orderId,
   );
   assert.deepEqual(worker.data.spendwisePendingOrders, []);
+  assert.equal(worker.runtimeMessages.length, 1);
+  assert.equal(worker.runtimeMessages[0].type, "PURCHASES_IMPORTED");
+});
+
+test("a successful staged-history import notifies the dashboard and clears the queue", async () => {
+  const worker = createWorker({
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ summary: makeSummary("imported") }),
+    }),
+  });
+  const order = { ...makeOrder(), source: "history" };
+
+  const staged = await worker.send({
+    type: "HISTORICAL_ORDERS_EXTRACTED",
+    payload: [order],
+  });
+  const imported = await worker.send({ type: "IMPORT_HISTORICAL_ORDERS" });
+
+  assert.equal(staged.status, "staged");
+  assert.equal(imported.status, "success");
+  assert.deepEqual(worker.data.spendwisePendingOrders, []);
+  assert.equal(worker.runtimeMessages.length, 1);
+  assert.equal(worker.runtimeMessages[0].type, "PURCHASES_IMPORTED");
 });
 
 test("an order already imported from history is treated as duplicate", async () => {
@@ -212,9 +295,19 @@ test("rejects incomplete or non-Amazon confirmations without API calls", async (
     { type: "AMAZON_PURCHASE_CONFIRMED", payload: makeOrder() },
     "https://example.com/order/confirmation",
   );
+  const insecureSender = await worker.send(
+    { type: "AMAZON_PURCHASE_CONFIRMED", payload: makeOrder() },
+    "http://www.amazon.in/gp/buy/thankyou/confirmation",
+  );
+  const lookalikeSender = await worker.send(
+    { type: "AMAZON_PURCHASE_CONFIRMED", payload: makeOrder() },
+    "https://amazon.in.example.com/gp/buy/thankyou/confirmation",
+  );
 
   assert.equal(invalid.status, "error");
   assert.equal(wrongSender.status, "error");
+  assert.equal(insecureSender.status, "error");
+  assert.equal(lookalikeSender.status, "error");
   assert.equal(fetchCount, 0);
   assert.deepEqual(worker.data.spendwisePendingOrders, []);
 });
@@ -237,6 +330,60 @@ test("retains a confirmed order when the backend request fails", async () => {
     worker.data.spendwisePendingOrders[0].orderId,
     makeOrder().orderId,
   );
+});
+
+test("retains an order and clears expired authentication after an API 401", async () => {
+  const worker = createWorker({
+    fetchImpl: async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: "Invalid token" }),
+    }),
+  });
+
+  const response = await worker.send({
+    type: "AMAZON_PURCHASE_CONFIRMED",
+    payload: makeOrder(),
+  });
+
+  assert.equal(response.status, "queued");
+  assert.equal(worker.data.spendwisePendingOrders.length, 1);
+  assert.equal(worker.data.spendwiseAuth, undefined);
+  assert.deepEqual(worker.runtimeMessages, []);
+});
+
+test("retains per-order failures and clears resolved exclusions without refreshing purchases", async () => {
+  const failedWorker = createWorker({
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ summary: makeSummary("failed") }),
+    }),
+  });
+  const failed = await failedWorker.send({
+    type: "AMAZON_PURCHASE_CONFIRMED",
+    payload: makeOrder(),
+  });
+
+  assert.equal(failed.status, "failed");
+  assert.equal(failedWorker.data.spendwisePendingOrders.length, 1);
+  assert.deepEqual(failedWorker.runtimeMessages, []);
+
+  const excludedWorker = createWorker({
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ summary: makeSummary("excluded") }),
+    }),
+  });
+  const excluded = await excludedWorker.send({
+    type: "AMAZON_PURCHASE_CONFIRMED",
+    payload: makeOrder(),
+  });
+
+  assert.equal(excluded.status, "excluded");
+  assert.deepEqual(excludedWorker.data.spendwisePendingOrders, []);
+  assert.deepEqual(excludedWorker.runtimeMessages, []);
 });
 
 const originalFindOne = Purchase.findOne;

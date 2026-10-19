@@ -296,60 +296,80 @@ function Dashboard() {
 
   useEffect(() => {
     let cancelled = false;
+    let requestInFlight = false;
+    let refreshQueued = false;
 
-    async function loadPurchases() {
-      setLoading(true);
-      setError('');
-
-      try {
-        const auth = await getStoredAuth();
-        const token = getToken(auth);
-
-        if (!token) {
-          throw new Error(
-            'You are not signed in. Please sign in and reopen the dashboard.',
-          );
-        }
-
-        const response = await fetch(`${API_BASE_URL}/api/purchases`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
-          },
-        });
-
-        const result = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(
-            result.message || `Unable to load purchases (${response.status}).`,
-          );
-        }
-
-        if (!Array.isArray(result.purchases)) {
-          throw new Error('The purchases API returned an unexpected response.');
-        }
-
-        if (cancelled) return;
-
-        setPurchases(result.purchases.map(normalizePurchase));
-
-        const name = auth?.user?.name || auth?.name;
-        if (name) setUserName(name);
-      } catch (err) {
-        if (!cancelled) {
-          setError(err.message || 'Something went wrong while loading purchases.');
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+    async function loadPurchases(showLoading = false) {
+      if (requestInFlight) {
+        refreshQueued = true;
+        return;
       }
+
+      requestInFlight = true;
+      if (showLoading) setLoading(true);
+
+      do {
+        refreshQueued = false;
+        setError('');
+
+        try {
+          const auth = await getStoredAuth();
+          const token = getToken(auth);
+
+          if (!token) {
+            throw new Error(
+              'You are not signed in. Please sign in and reopen the dashboard.',
+            );
+          }
+
+          const response = await fetch(`${API_BASE_URL}/api/purchases`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: 'application/json',
+            },
+          });
+
+          const result = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(
+              result.message || `Unable to load purchases (${response.status}).`,
+            );
+          }
+
+          if (!Array.isArray(result.purchases)) {
+            throw new Error('The purchases API returned an unexpected response.');
+          }
+
+          if (!cancelled) {
+            setPurchases(result.purchases.map(normalizePurchase));
+
+            const name = auth?.user?.name || auth?.name;
+            if (name) setUserName(name);
+          }
+        } catch (err) {
+          if (!cancelled) {
+            setError(err.message || 'Something went wrong while loading purchases.');
+          }
+        }
+      } while (refreshQueued && !cancelled);
+
+      requestInFlight = false;
+      if (!cancelled) setLoading(false);
     }
 
-    loadPurchases();
+    const handleRuntimeMessage = (message) => {
+      if (message?.type === 'PURCHASES_IMPORTED') loadPurchases();
+    };
+    const runtime = typeof chrome !== 'undefined' ? chrome.runtime : null;
+    runtime?.onMessage?.addListener(handleRuntimeMessage);
+
+    loadPurchases(true);
 
     return () => {
       cancelled = true;
+      runtime?.onMessage?.removeListener(handleRuntimeMessage);
     };
   }, []);
 

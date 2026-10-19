@@ -77,6 +77,16 @@ const isAmazonContentSender = (sender) => {
   }
 };
 
+const notifyPurchasesImported = () => {
+  try {
+    chrome.runtime.sendMessage({ type: "PURCHASES_IMPORTED" }, () => {
+      void chrome.runtime.lastError;
+    });
+  } catch {
+    // A dashboard may not be open to receive the notification.
+  }
+};
+
 const submitRealtimeOrder = async (order) => {
   await stageHistoricalOrders([order]);
 
@@ -165,6 +175,8 @@ const submitRealtimeOrder = async (order) => {
     const orders = current.filter((item) => getOrderKey(item) !== orderKey);
     return { orders, result: orders.length };
   });
+
+  if (result.status === "imported") notifyPurchasesImported();
 
   return {
     status: result.status === "imported" ? "success" : result.status,
@@ -325,6 +337,8 @@ const importPendingOrders = async () => {
     );
     return { orders: unresolved, result: unresolved.length };
   });
+
+  if (summary.imported > 0) notifyPurchasesImported();
 
   return {
     status: summary.failed === 0 ? "success" : "partial",

@@ -278,6 +278,19 @@ h3 {
   margin-top: 0;
 }
 
+.auth-mode-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.auth-mode-switch .text-button {
+  flex-shrink: 0;
+}
+
 .account-row,
 .pending-import {
   display: flex;

@@ -4,17 +4,23 @@ const jwt = require("jsonwebtoken");
 
 const register = async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name } = req.body || {};
+    const normalizedEmail =
+      typeof email === "string" ? email.trim().toLowerCase() : "";
+    const normalizedName = typeof name === "string" ? name.trim() : "";
 
-    // 1. Validate required fields
-    if (!email || !password) {
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) ||
+      typeof password !== "string" ||
+      password.length === 0 ||
+      (name !== undefined && typeof name !== "string")
+    ) {
       return res.status(400).json({
-        message: "Email and password are required",
+        message: "A valid email and password are required",
       });
     }
 
-    // 2. Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return res.status(409).json({
@@ -22,17 +28,14 @@ const register = async (req, res) => {
       });
     }
 
-    // 3. Hash the password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // 4. Create the user
     const user = await User.create({
-      email,
+      email: normalizedEmail,
       passwordHash,
-      name,
+      name: normalizedName || undefined,
     });
 
-    // 5. Send response
     res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -42,6 +45,12 @@ const register = async (req, res) => {
       },
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: "User already exists",
+      });
+    }
+
     console.error("Registration error:", error.message);
 
     res.status(500).json({

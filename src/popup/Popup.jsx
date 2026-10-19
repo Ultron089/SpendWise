@@ -8,8 +8,11 @@ import {
 function Popup() {
   const [account, setAccount] = useState(null);
   const [pendingCount, setPendingCount] = useState(0);
+  const [authMode, setAuthMode] = useState("signin");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [noticeType, setNoticeType] = useState("info");
@@ -44,6 +47,14 @@ function Popup() {
     return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
 
+  const switchAuthMode = (mode) => {
+    setAuthMode(mode);
+    setPassword("");
+    setConfirmPassword("");
+    setNotice("");
+    setNoticeType("info");
+  };
+
   const signIn = async (event) => {
     event.preventDefault();
     setBusy(true);
@@ -53,9 +64,9 @@ function Popup() {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
-      const body = await response.json();
+      const body = await response.json().catch(() => ({}));
 
       if (
         !response.ok ||
@@ -77,6 +88,65 @@ function Popup() {
       setAccount(signedInUser);
       setPassword("");
       setNotice("Signed in. Review your staged orders before importing.");
+      setNoticeType("success");
+    } catch (error) {
+      setNotice(
+        error instanceof TypeError
+          ? "Could not reach the SpendWise server. Check that it is running."
+          : error.message,
+      );
+      setNoticeType("error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const register = async (event) => {
+    event.preventDefault();
+    setNotice("");
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setNotice("Enter a valid email address.");
+      setNoticeType("error");
+      return;
+    }
+    if (!password) {
+      setNotice("Enter a password.");
+      setNoticeType("error");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setNotice("Passwords do not match.");
+      setNoticeType("error");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: normalizedEmail,
+          password,
+        }),
+      });
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok || typeof body?.user?.email !== "string") {
+        throw new Error(
+          body?.message || "Could not create your account. Please try again.",
+        );
+      }
+
+      setEmail(body.user.email);
+      setName("");
+      setPassword("");
+      setConfirmPassword("");
+      setAuthMode("signin");
+      setNotice("Account created. Sign in with your new credentials.");
       setNoticeType("success");
     } catch (error) {
       setNotice(
@@ -121,9 +191,17 @@ function Popup() {
     } catch (error) {
       setNotice(error.message || "Import failed. Staged orders were kept.");
       setNoticeType("error");
-    } finally {
-      setBusy(false);
-    }
+   } finally {
+  const stored = await chrome.storage.local.get(
+    "spendwisePendingOrders"
+  );
+
+  setPendingCount(
+    (stored.spendwisePendingOrders || []).length
+  );
+
+  setBusy(false);
+}
   };
 
   const showVerificationUserId = async () => {
@@ -200,8 +278,23 @@ function Popup() {
             </button>
           </div>
         ) : (
-          <form className="auth-form" onSubmit={signIn}>
-            <h2>Sign in to SpendWise</h2>
+          <form
+            className="auth-form"
+            onSubmit={authMode === "signin" ? signIn : register}
+          >
+            <h2>{authMode === "signin" ? "Sign in to SpendWise" : "Create your account"}</h2>
+            {authMode === "register" && (
+              <label>
+                Name
+                <input
+                  autoComplete="name"
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                  type="text"
+                  value={name}
+                />
+              </label>
+            )}
             <label>
               Email
               <input
@@ -215,16 +308,49 @@ function Popup() {
             <label>
               Password
               <input
-                autoComplete="current-password"
+                autoComplete={authMode === "signin" ? "current-password" : "new-password"}
                 onChange={(event) => setPassword(event.target.value)}
                 required
                 type="password"
                 value={password}
               />
             </label>
+            {authMode === "register" && (
+              <label>
+                Confirm password
+                <input
+                  autoComplete="new-password"
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  required
+                  type="password"
+                  value={confirmPassword}
+                />
+              </label>
+            )}
             <button className="primary-button" disabled={busy} type="submit">
-              {busy ? "Signing in..." : "Sign in"}
+              {busy
+                ? authMode === "signin"
+                  ? "Signing in..."
+                  : "Creating account..."
+                : authMode === "signin"
+                  ? "Sign in"
+                  : "Create account"}
             </button>
+            <div className="auth-mode-switch">
+              <span>
+                {authMode === "signin" ? "New to SpendWise?" : "Already have an account?"}
+              </span>
+              <button
+                className="text-button"
+                disabled={busy}
+                onClick={() =>
+                  switchAuthMode(authMode === "signin" ? "register" : "signin")
+                }
+                type="button"
+              >
+                {authMode === "signin" ? "Create account" : "Back to sign in"}
+              </button>
+            </div>
           </form>
         )}
 
