@@ -23,11 +23,6 @@ By combining real-time purchase detection with historical order imports, SpendWi
 SpendWise is designed to support purchase extraction from:
 
 - Amazon
-- Flipkart
-- Myntra
-- AJIO
-- Blinkit
-- Zepto
 
 Extraction behavior depends on the structure and availability of purchase information on each website. Website changes may require updates to the extraction logic.
 
