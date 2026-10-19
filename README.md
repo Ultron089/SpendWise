@@ -295,20 +295,6 @@ Potential improvements include:
 - Additional automated integration tests.
 - Further improvements to product categorization accuracy.
 
-These are possible future enhancements, not a list of features that users should assume are already available.
-
-## Team
-
-**SpendWise Project Team**
-
-- Atharv Singh
-- Rishit Chandra Chitrala
-- Aditya Chourasia
-
-## License
-
-A license has not been specified in this README. Add an appropriate license file if you intend to distribute the project under an open-source license.
-
----
+## These are possible future enhancements, not a list of features that users should assume are already available.
 
 **SpendWise — Making online shopping expenses easier to understand.**
